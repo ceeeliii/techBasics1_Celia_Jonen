@@ -1,8 +1,8 @@
 # ART PIECE # 
-
+--------------
 ## "LOVE" ##
-
-**created by Celia**     
+________________
+**created by _Celia_**     
 
 
 ```# ASCII Art: "LOVE"
