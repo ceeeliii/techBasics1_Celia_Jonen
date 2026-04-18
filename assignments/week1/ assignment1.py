@@ -19,8 +19,8 @@ def main():
     line5 = " | |____ | |__| |   \ \_/ /   |  ---|"
     line6 = " |______||______|    \___/    |______|"
     
-    # The above lines are a stylized, compact block for "LOVE".
-    # If you prefer a larger block, you can replace with a bigger pattern.
+    
+    
 
     # Print each line to form the complete art.
     print(line1)
