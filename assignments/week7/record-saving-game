@@ -1,1 +1,394 @@
+import time
+import csv
+import os
+from datetime import datetime
 
+# CONSTANTS
+
+# Timing delays (in seconds)
+DELAY_SHORT  = 0.4
+DELAY_NORMAL = 0.6
+DELAY_LONG   = 0.8
+
+# Quiz settings
+TOTAL_QUESTIONS = 5
+PERFECT_SCORE   = TOTAL_QUESTIONS
+GOOD_SCORE_MIN  = 3
+CONFIDENCE_MIN  = 7
+CONFIDENCE_RANGE = (1, 10)
+
+# Story flavour
+ENEMY_HOUSE = "Slytherin"
+
+# Debugging & file settings
+DEBUG = False                    
+DEBUG_SCORE = 2                   
+RECORDS_FILE = "leaderboard.csv"  
+MAX_LEADERBOARD_ENTRIES = 10    
+
+# QUESTIONS DATA
+
+QUESTIONS = [
+    {
+        "text": "Question 1/5: In which house is Harry Potter?",
+        "type": "text",
+        "correct": {"gryffindor"},
+        "hint": "Think of courage and bravery.",
+    },
+    {
+        "text": "Question 2/5: What is the name of Harry's owl?",
+        "type": "text",
+        "correct": {"hedwig"},
+        "hint": "She delivers magical mail.",
+    },
+    {
+        "text": (
+            "Question 3/5: Which spell lets Harry control his broom? (Choose A/B/C)\n"
+            "  A) Wingardium Leviosa\n"
+            "  B) Accio\n"
+            "  C) Stupefy"
+        ),
+        "type": "choice",
+        "options": {"A", "B", "C"},
+        "correct": None,
+        "hint": None,
+    },
+    {
+        "text": "Question 4/5: Choose the Patronus animal: (A) Doe  (B) Wolf  (C) Snake",
+        "type": "choice",
+        "options": {"A", "B", "C"},
+        "correct": "A",
+        "hint": None,
+    },
+    {
+        "text": (
+            "Question 5/5: True or False?\n"
+            "'Voldemort could not be destroyed because he had Horcruxes.'"
+        ),
+        "type": "choice",
+        "options": {"T", "F"},
+        "correct": "T",
+        "hint": None,
+    },
+]
+
+# HELPER FUNCTIONS (low-level)
+
+def slow_print(text, delay=0.5):
+    """Print text and pause for a given delay."""
+    print(text)
+    time.sleep(delay)
+
+
+def ask_choice(prompt, valid_options):
+    """Keep asking until the user enters one of the valid options."""
+    while True:
+        answer = input(prompt).strip().upper()
+        if answer in valid_options:
+            return answer
+        slow_print("That doesn't look right. Please try again.", DELAY_NORMAL)
+
+
+def ask_int_in_range(prompt, min_value, max_value):
+    """Keep asking until the user enters a whole number within the given range."""
+    while True:
+        raw = input(prompt).strip()
+
+        if not raw.isdigit():
+            slow_print("Please enter a whole number, e.g. '8' (digits only).", DELAY_NORMAL)
+            continue
+
+        n = int(raw)
+
+        if min_value <= n <= max_value:
+            return n
+        else:
+            slow_print(f"Number must be between {min_value} and {max_value}. Try again.", DELAY_LONG)
+
+
+def normalize_text(s):
+    """Lowercase, strip, and collapse whitespace for consistent comparison."""
+    return " ".join(s.strip().lower().split())
+
+# SETUP FUNCTIONS
+
+
+def get_player_name():
+    """Ask for the player's name and return it."""
+    name = input("What is your name? ").strip()
+
+    if name == "":
+        slow_print("No name entered. I'll call you 'Wizard'.", DELAY_NORMAL)
+        return "Wizard"
+    else:
+        slow_print(f"Great, {name}!", DELAY_LONG)
+        return name
+
+
+def get_difficulty():
+    """Ask the player to choose a difficulty and return 'E' or 'H'."""
+    difficulty = ask_choice(
+        "Choose difficulty: (E)asy or (H)ard: ",
+        valid_options={"E", "H"}
+    )
+
+    if difficulty == "E":
+        slow_print("Easy mode: You get a small hint when needed.", DELAY_NORMAL)
+    else:
+        slow_print("Hard mode: No hints. Go for it!", DELAY_NORMAL)
+
+    return difficulty
+
+# QUESTION FUNCTIONS
+
+def ask_question_1(difficulty):
+    """Ask Q1 (Harry's house) and return 1 if correct, 0 if not."""
+    slow_print(QUESTIONS[0]["text"], DELAY_NORMAL)
+    slow_print("Type your answer.", DELAY_SHORT)
+
+    answer = normalize_text(input("Your answer: "))
+
+    if answer in QUESTIONS[0]["correct"]:
+        slow_print("Correct! 🦁", DELAY_NORMAL)
+        return 1
+    else:
+        if difficulty == "E":
+            slow_print(f"Hint: {QUESTIONS[0]['hint']}", DELAY_LONG)
+        slow_print("Not quite. The answer was 'Gryffindor'.", DELAY_LONG)
+        return 0
+
+
+def ask_question_2(difficulty):
+    """Ask Q2 (owl name) and return 1 if correct, 0 if not."""
+    slow_print(QUESTIONS[1]["text"], DELAY_NORMAL)
+
+    answer = normalize_text(input("The name of his owl is... : "))
+
+    if answer in QUESTIONS[1]["correct"]:
+        slow_print("Correct! Owls deliver magic mail. 🦉", DELAY_NORMAL)
+        return 1
+    elif answer in {"hedwig's", "hedwig,"}:
+        slow_print("That is effectively correct — nice try!", DELAY_NORMAL)
+        return 1
+    else:
+        if difficulty == "E":
+            slow_print(f"Hint: {QUESTIONS[1]['hint']}", DELAY_LONG)
+        slow_print("Incorrect. The correct answer is 'Hedwig'.", DELAY_LONG)
+        return 0
+
+
+def ask_question_3(difficulty):
+    """Ask Q3 (broom spell) with confidence mini-task. Returns 0 or 1."""
+    slow_print(QUESTIONS[2]["text"], DELAY_NORMAL)
+
+    answer = ask_choice("Your choice (A, B, or C): ", valid_options=QUESTIONS[2]["options"])
+
+    if answer == "A":
+        if difficulty == "H":
+            slow_print("Hard mode: That doesn't control a broom.", DELAY_NORMAL)
+        slow_print("Not this one — the correct spell isn't among these choices.", DELAY_LONG)
+    elif answer == "B":
+        slow_print("Not quite — 'Accio' summons objects, not brooms.", DELAY_LONG)
+    else:
+        slow_print("'Stupefy' actually stuns opponents, not brooms — tricky question!", DELAY_LONG)
+
+    # Confidence mini-task
+    slow_print("Mini-task: Rate your confidence to earn points here (1 to 10).", DELAY_NORMAL)
+    confidence = ask_int_in_range("Confidence number (1-10): ", *CONFIDENCE_RANGE)
+
+    if confidence >= CONFIDENCE_MIN:
+        slow_print("High confidence! Bonus point granted. ✨", DELAY_NORMAL)
+        return 1
+    else:
+        slow_print("Confidence was a bit low. No bonus this time.", DELAY_NORMAL)
+        return 0
+
+
+def ask_question_4(difficulty):
+    """Ask Q4 (Patronus animal) and return 1 or 0 based on choice + difficulty."""
+    slow_print(QUESTIONS[3]["text"], DELAY_NORMAL)
+    slow_print("In your story, what would you pick?", DELAY_SHORT)
+
+    answer = ask_choice("Your choice (A/B/C): ", valid_options=QUESTIONS[3]["options"])
+
+    if answer == "A":
+        slow_print("A doe: You are calm, kind, and protective. 🦌", DELAY_NORMAL)
+        return 1
+    elif answer == "B":
+        slow_print("A wolf: Strong instincts and loyalty. 🐺", DELAY_NORMAL)
+        return 0
+    else:
+        if difficulty == "H":
+            slow_print("Snake on Hard mode? Slytherin energy! 🐍", DELAY_LONG)
+            return 1
+        else:
+            slow_print("Snake pick, but Easy mode keeps you balanced. No point.", DELAY_LONG)
+            return 0
+
+
+def ask_question_5():
+    """Ask Q5 (Horcruxes True/False) and return 1 if correct, 0 if not."""
+    slow_print(QUESTIONS[4]["text"], DELAY_NORMAL)
+
+    answer = ask_choice("Answer (T/F): ", valid_options=QUESTIONS[4]["options"])
+
+    if answer == "T":
+        if ENEMY_HOUSE == "Slytherin":
+            slow_print("Correct! Even Slytherins can't deny this fact.", DELAY_LONG)
+        else:
+            slow_print("Correct!", DELAY_NORMAL)
+        return 1
+    else:
+        slow_print("Incorrect. Horcruxes made him much harder to destroy.", DELAY_LONG)
+        return 0
+
+# RESULTS
+
+def show_results(name, score):
+    """Print the final score and a message based on performance."""
+    time.sleep(DELAY_NORMAL)
+    slow_print(f"Quiz finished! {name}, your score is {score}/{TOTAL_QUESTIONS}.", DELAY_LONG)
+
+    if score == PERFECT_SCORE:
+        slow_print("Perfect score. You are a real wizard! 🏆", DELAY_LONG)
+    elif score >= GOOD_SCORE_MIN:
+        slow_print("Nice job! You know your magic.", DELAY_LONG)
+    else:
+        slow_print("Not bad — but you should learn your spells. Try again!", DELAY_LONG)
+
+# LEADERBOARD FUNCTIONS  ← NEW THIS WEEK
+
+def save_record(name, score):
+    """Save a single result (name, score, timestamp) to the CSV file."""
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    try:
+        # Check if file already exists to decide whether to write the header
+        file_exists = os.path.isfile(RECORDS_FILE)
+
+        with open(RECORDS_FILE, "a", newline="") as f:
+            writer = csv.writer(f)
+
+            # Only write the header row if the file is new
+            if not file_exists:
+                writer.writerow(["name", "score", "timestamp"])
+
+            writer.writerow([name, score, timestamp])
+
+        print(f"Record saved for {name}.")
+
+    except Exception as e:
+        # If anything goes wrong with saving, warn the player but don't crash
+        print(f"Could not save record: {e}")
+
+
+def load_records():
+    """Load all records from the CSV file and return as a list of dicts."""
+    try:
+        with open(RECORDS_FILE, "r") as f:
+            reader = csv.DictReader(f)
+            records = []
+
+            for row in reader:
+                # Convert score back to int so we can sort numerically
+                records.append({
+                    "name":      row["name"],
+                    "score":     int(row["score"]),
+                    "timestamp": row["timestamp"]
+                })
+
+            return records
+
+    except FileNotFoundError:
+        # No file yet — that's fine, just return an empty list
+        return []
+
+    except Exception as e:
+        print(f"Could not load records: {e}")
+        return []
+
+
+def show_leaderboard():
+    """Load records, sort by score, and display the top results."""
+    records = load_records()
+
+    if not records:
+        print("No records found yet.")
+        return
+
+    # Sort by score highest first
+    sorted_records = sorted(records, key=lambda r: r["score"], reverse=True)
+    top_records = sorted_records[:MAX_LEADERBOARD_ENTRIES]
+
+    print("\n========== 🏆 LEADERBOARD 🏆 ==========")
+    print(f"{'#':<4} {'Name':<15} {'Score':<8} {'Date'}")
+    print("-" * 42)
+
+    for i, record in enumerate(top_records, start=1):
+        print(f"{i:<4} {record['name']:<15} {record['score']:<8} {record['timestamp']}")
+
+    print("========================================\n")
+
+# MAIN
+
+
+def main():
+    """Main game loop: greets the player, runs the quiz, handles restart."""
+
+    # --- DEBUG MODE ---
+    # Skips the quiz entirely, saves a placeholder score for testing
+    if DEBUG:
+        print("⚠️  DEBUG MODE is ON — skipping quiz.")
+        name = input("Enter your name: ").strip() or "Wizard"
+        save_record(name, DEBUG_SCORE)
+        show_leaderboard()
+        return
+
+    # --- NORMAL MODE ---
+    slow_print("Welcome to the Harry Potter Quiz 🪄!", DELAY_NORMAL)
+    slow_print(f"You will answer {TOTAL_QUESTIONS} questions.", DELAY_LONG)
+    time.sleep(DELAY_SHORT)
+
+    while True:
+        score = 0
+
+        # Setup
+        name = get_player_name()
+        difficulty = get_difficulty()
+        time.sleep(DELAY_LONG)
+
+        # Questions
+        score += ask_question_1(difficulty)
+        time.sleep(DELAY_NORMAL)
+
+        score += ask_question_2(difficulty)
+        time.sleep(DELAY_NORMAL)
+
+        score += ask_question_3(difficulty)
+        time.sleep(DELAY_LONG)
+
+        score += ask_question_4(difficulty)
+        time.sleep(DELAY_NORMAL)
+
+        score += ask_question_5()
+        time.sleep(DELAY_NORMAL)
+
+        # Results
+        show_results(name, score)
+
+        # Save and show leaderboard
+        save_record(name, score)
+        show_leaderboard()
+
+        # Restart
+        restart = ask_choice("Do you want to restart? (Y/N): ", valid_options={"Y", "N"})
+        if restart == "N":
+            slow_print("Thanks for playing! Goodbye! ✨", DELAY_NORMAL)
+            break
+        else:
+            slow_print("Restarting the quiz...", DELAY_NORMAL)
+            time.sleep(DELAY_SHORT)
+
+
+if __name__ == "__main__":
+    main()
