@@ -3,74 +3,61 @@ import csv
 import os
 from datetime import datetime
 
-# CONSTANTS
-
-# Timing delays (in seconds)
+# defining time delays (in sec)
 DELAY_SHORT  = 0.4
 DELAY_NORMAL = 0.6
 DELAY_LONG   = 0.8
 
-# Quiz settings
+# Quiz settings overview 
 TOTAL_QUESTIONS = 5
 PERFECT_SCORE   = TOTAL_QUESTIONS
 GOOD_SCORE_MIN  = 3
 CONFIDENCE_MIN  = 7
 CONFIDENCE_RANGE = (1, 10)
 
-# Story flavour
+# Story background/ mood 
 ENEMY_HOUSE = "Slytherin"
 
 # Debugging & file settings
-DEBUG = False                    
-DEBUG_SCORE = 2                   
-RECORDS_FILE = "leaderboard.csv"  
-MAX_LEADERBOARD_ENTRIES = 10    
+DEBUG = False
+DEBUG_SCORE = 2
+RECORDS_FILE = "leaderboard.csv"
+MAX_LEADERBOARD_ENTRIES = 10
 
 # QUESTIONS DATA
 
 QUESTIONS = [
-    {
-        "text": "Question 1/5: In which house is Harry Potter?",
+    {"text": "Question 1/5: In which house is Harry Potter?",
         "type": "text",
         "correct": {"gryffindor"},
-        "hint": "Think of courage and bravery.",
-    },
-    {
-        "text": "Question 2/5: What is the name of Harry's owl?",
+        "hint": "Think of courage and bravery."},
+   
+    {"text": "Question 2/5: What is the name of Harry's owl?",
         "type": "text",
         "correct": {"hedwig"},
-        "hint": "She delivers magical mail.",
-    },
-    {
-        "text": (
-            "Question 3/5: Which spell lets Harry control his broom? (Choose A/B/C)\n"
+        "hint": "She delivers magical mail."},
+    
+    {"text": ( "Question 3/5: Which spell lets Harry control his broom? (Choose A/B/C)\n"
             "  A) Wingardium Leviosa\n"
             "  B) Accio\n"
-            "  C) Stupefy"
-        ),
+            "  C) Stupefy"),
         "type": "choice",
         "options": {"A", "B", "C"},
         "correct": None,
-        "hint": None,
-    },
-    {
-        "text": "Question 4/5: Choose the Patronus animal: (A) Doe  (B) Wolf  (C) Snake",
+        "hint": None, },
+    
+    {"text": ("Question 4/5: Choose the Patronus animal: (A) Doe  (B) Wolf  (C) Snake"),
         "type": "choice",
         "options": {"A", "B", "C"},
         "correct": "A",
-        "hint": None,
-    },
-    {
-        "text": (
-            "Question 5/5: True or False?\n"
-            "'Voldemort could not be destroyed because he had Horcruxes.'"
-        ),
+        "hint": None,},
+    
+    {"text": ("Question 5/5: True or False?\n"
+            "'Voldemort could not be destroyed because he had Horcruxes.'"),
         "type": "choice",
         "options": {"T", "F"},
         "correct": "T",
-        "hint": None,
-    },
-]
+        "hint": None, },]
 
 # HELPER FUNCTIONS (low-level)
 
@@ -112,7 +99,6 @@ def normalize_text(s):
 
 # SETUP FUNCTIONS
 
-
 def get_player_name():
     """Ask for the player's name and return it."""
     name = input("What is your name? ").strip()
@@ -127,10 +113,8 @@ def get_player_name():
 
 def get_difficulty():
     """Ask the player to choose a difficulty and return 'E' or 'H'."""
-    difficulty = ask_choice(
-        "Choose difficulty: (E)asy or (H)ard: ",
-        valid_options={"E", "H"}
-    )
+    difficulty = ask_choice("Choose difficulty: (E)asy or (H)ard: ",
+        valid_options={"E", "H"})
 
     if difficulty == "E":
         slow_print("Easy mode: You get a small hint when needed.", DELAY_NORMAL)
@@ -256,7 +240,7 @@ def show_results(name, score):
     else:
         slow_print("Not bad — but you should learn your spells. Try again!", DELAY_LONG)
 
-# LEADERBOARD FUNCTIONS  ← NEW THIS WEEK
+# NEW LEADERBOARD FUNCTIONS
 
 def save_record(name, score):
     """Save a single result (name, score, timestamp) to the CSV file."""
@@ -324,8 +308,8 @@ def show_leaderboard():
     print(f"{'#':<4} {'Name':<15} {'Score':<8} {'Date'}")
     print("-" * 42)
 
-    for i, record in enumerate(top_records, start=1):
-        print(f"{i:<4} {record['name']:<15} {record['score']:<8} {record['timestamp']}")
+   for i, record in enumerate(top_records, start=1):
+    print(f"{i}. {record['name']} - {record['score']}/{TOTAL_QUESTIONS} ({record['timestamp']})") 
 
     print("========================================\n")
 
