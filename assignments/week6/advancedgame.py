@@ -1,42 +1,36 @@
-# --- Constants ---
+# Constants
 MAX_INVENTORY_SIZE = 5
 STARTING_ROOM = "beach"
 WIN_ITEM = "flare"
 WIN_ROOM = "beach"
 
-# --- Game State ---
+# Game State
 inventory = []
 current_room = STARTING_ROOM
 player_health = 3
 
-# --- World Data ---
-rooms = {
-    "beach": {
-        "description": "You are on a sandy beach. The sun is hot and the sea stretches endlessly. A rescue plane might pass overhead...",
-        "items": [
-            {"name": "coconut", "type": "food",    "description": "A fresh coconut. Could restore some energy."},
-            {"name": "rope",    "type": "tool",    "description": "A sturdy rope. Useful for many things."},
-        ]
-    },
-    "jungle": {
-        "description": "You push through dense jungle. Strange sounds surround you.",
-        "items": [
-            {"name": "medkit",  "type": "healing", "description": "A first aid kit. Restores full health."},
-            {"name": "map",     "type": "tool",    "description": "A hand-drawn map of the island."},
-            {"name": "berries", "type": "food",    "description": "Wild berries. Hopefully not poisonous..."},
-        ]
-    },
-    "cave": {
-        "description": "A dark, damp cave. Something glints in the corner.",
-        "items": [
-            {"name": "torch",   "type": "tool",    "description": "Lights up dark places."},
+# World Data
+rooms = \
+{"beach":
+        {"description": "You are on a sandy beach. The sun is hot and the sea stretches endlessly. A rescue plane might pass overhead...",
+        "items":
+        [{"name":"coconut", "type": "food", "description": "A fresh coconut. Could restore some energy."},
+        {"name": "rope", "type": "tool", "description": "A sturdy rope. Useful for many things."}] },
+ "jungle":
+        {"description": "You push through dense jungle. Strange sounds surround you.",
+        "items":
+            [{"name": "medkit", "type": "healing", "description": "A first aid kit. Restores full health."},
+            {"name": "map", "type": "tool", "description": "A hand-drawn map of the island."},
+            {"name": "berries", "type": "food", "description": "Wild berries. Hopefully not poisonous..."} ]},
+ "cave":
+        {"description": "A dark, damp cave. Something glints in the corner.",
+        "items":
+            [{"name": "torch",   "type": "tool",    "description": "Lights up dark places."},
             {"name": "flare",   "type": "tool",    "description": "An emergency signal flare. This could save you!"},
-            {"name": "knife",   "type": "tool",    "description": "A rusty knife. Better than nothing."},
-        ]
-    }
-}
+            {"name": "knife",   "type": "tool",    "description": "A rusty knife. Better than nothing."},]}}
 
-# --- Functions ---
+
+# Functions
 
 def show_inventory():
     """Display all items currently in the player's inventory."""
@@ -116,14 +110,14 @@ def use(item_name):
     for item in inventory:
         if item["name"] == item_name:
 
-            # --- Win condition ---
+            # Win condition
             if item["name"] == WIN_ITEM and current_room == WIN_ROOM:
                 print("You fire the flare into the sky. A distant plane turns toward the island...")
                 print("🚁 A rescue helicopter arrives! YOU ARE SAVED! 🎉")
                 print("\nYou win! Thanks for playing.")
                 quit()
 
-            # --- Food items restore health ---
+            # Food items restore health
             elif item["type"] == "food":
                 if item["name"] == "berries":
                     player_health -= 1
@@ -140,13 +134,13 @@ def use(item_name):
                     else:
                         print("You are already at full health!")
 
-            # --- Healing items ---
+            # Healing items
             elif item["type"] == "healing":
                 player_health = 3
                 print(f"You use the {item['name'].capitalize()}. Health fully restored! ❤️ Health: {player_health}/3")
                 inventory.remove(item)
 
-            # --- Room navigation items ---
+            # Room navigation items
             elif item["name"] == "map":
                 print("The map shows three areas: Beach, Jungle, and Cave.")
                 print("Use 'go beach', 'go jungle', or 'go cave' to move between them.")
@@ -160,7 +154,7 @@ def use(item_name):
             elif item["name"] == "knife":
                 print("You slash at some nearby vines. Feels good, but not immediately useful.")
 
-            # --- Flare in wrong room ---
+            # Flare in wrong room
             elif item["name"] == "flare":
                 print("You need to be on the beach to signal a rescue plane!")
 
@@ -184,7 +178,7 @@ def go(room_name):
         print(f"You can't go to '{room_name}'. Try: beach, jungle, or cave.")
 
 
-# --- Game Loop ---
+# Game Loop
 
 def game_loop():
     """Main game loop: read commands and call the right function."""
