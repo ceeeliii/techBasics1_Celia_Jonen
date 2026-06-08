@@ -1,148 +1,122 @@
-__import__('pygame')
+import pygame
+import random
 
-#Flower (from week 3 I want to use here)
-# setup
-('from turtle import')
+# --- constants ---
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+BACKGROUND_COLOR = (135, 206, 235)  # sky blue
+FPS = 60
 
-setup(600, 600)
-bgcolor("skyblue")
-tracer(0, 0)
+# --- flower class ---
+class Flower:
+    def __init__(self):
+        # random starting position
+        self.x = random.randint(-100, -20)
+        self.y = random.randint(100, SCREEN_HEIGHT - 150)
 
-# draw pot
-penup()
-goto(-35, -220)
-pendown()
-color("saddlebrown")
-begin_fill()
-for i in range(2):
-    forward(120)
-    left(90)
-    forward(80)
-    left(90)
-end_fill()
+        # random speed
+        self.speed = random.uniform(1.0, 3.5)
 
-# draw flower stem
-penup()
-goto(25, -140)
-pendown()
-color("green")
-pensize(12)
-setheading(90)
-forward(180)
+        # random size
+        self.scale = random.uniform(0.6, 1.2)
 
-# left leaf
-penup()
-goto(20, -40)
-pendown()
-setheading(140)
-color("darkgreen")
-begin_fill()
-circle(60, 70)
-left(110)
-circle(60, 70)
-end_fill()
+        # random petal color
+        self.petal_color = random.choice([
+            (255, 182, 193),  # light pink
+            (255, 105, 180),  # hot pink
+            (216, 191, 216),  # thistle purple
+            (255, 160, 122),  # light salmon
+        ])
 
-# right leaf
-penup()
-goto(40, -70)
-pendown()
-setheading(40)
-begin_fill()
-circle(50, 70)
-left(100)
-circle(60, 70)
-end_fill()
+    def draw(self, screen):
+        cx = int(self.x)
+        cy = int(self.y)
+        s = self.scale
 
-# flower center
-penup()
-goto(0, 60)
-pendown()
-pensize(1)
-color("orange")
-begin_fill()
-circle(30)
-end_fill()
+        # --- pot ---
+        pot_rect = pygame.Rect(cx - int(35 * s), cy + int(80 * s), int(70 * s), int(50 * s))
+        pygame.draw.rect(screen, (139, 69, 19), pot_rect)
 
-# petals
-for angle in range(0, 360, 45):
-    penup()
-    goto(30, 65)
-    setheading(angle)
-    forward(50)
-    pendown()
-    color("pink")
-    begin_fill()
-    circle(25)
-    end_fill()
+        # --- stem ---
+        stem_start = (cx, cy + int(80 * s))
+        stem_end = (cx, cy - int(20 * s))
+        pygame.draw.line(screen, (0, 128, 0), stem_start, stem_end, int(8 * s))
 
-# little details in the center
-penup()
-goto(25, 60)
-pendown()
-color("yellow")
-begin_fill()
-circle(8)
-end_fill()
+        # --- left leaf ---
+        left_leaf_points = [
+            (cx, cy + int(40 * s)),
+            (cx - int(40 * s), cy + int(10 * s)),
+            (cx - int(10 * s), cy + int(50 * s)),
+        ]
+        pygame.draw.polygon(screen, (0, 100, 0), left_leaf_points)
 
-# finish
-update()
-exitonclick()
+        # --- right leaf ---
+        right_leaf_points = [
+            (cx, cy + int(55 * s)),
+            (cx + int(40 * s), cy + int(25 * s)),
+            (cx + int(10 * s), cy + int(65 * s)),
+        ]
+        pygame.draw.polygon(screen, (0, 100, 0), right_leaf_points)
+
+        # --- petals ---
+        petal_radius = int(18 * s)
+        petal_distance = int(28 * s)
+        for i in range(8):
+            angle_deg = i * 45
+            angle_rad = pygame.math.Vector2(1, 0).rotate(-angle_deg)
+            petal_x = cx + int(angle_rad.x * petal_distance)
+            petal_y = cy + int(angle_rad.y * petal_distance)
+            pygame.draw.circle(screen, self.petal_color, (petal_x, petal_y), petal_radius)
+
+        # --- flower center ---
+        pygame.draw.circle(screen, (255, 165, 0), (cx, cy), int(22 * s))
+
+        # --- small yellow detail ---
+        pygame.draw.circle(screen, (255, 255, 0), (cx, cy), int(10 * s))
+
+    def update(self):
+        # move flower to the right
+        self.x += self.speed
+
+        # reset when it goes off screen
+        if self.x > SCREEN_WIDTH + 100:
+            self.x = random.randint(-150, -20)
+            self.y = random.randint(100, SCREEN_HEIGHT - 150)
+            self.speed = random.uniform(1.0, 3.5)
+            self.scale = random.uniform(0.6, 1.2)
 
 
-#Dino setup from class
-# importing required library
+# --- main function ---
+def main():
+    pygame.init()
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    pygame.display.set_caption("Floating Flower 🌸")
+    clock = pygame.time.Clock()
+
+    # create one single flower instance
+    my_flower = Flower()
+
+    # --- game loop ---
+    running = True
+    while running:
+
+        # check if user closes the window
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        # draw background
+        screen.fill(BACKGROUND_COLOR)
+
+        # update and draw the flower
+        my_flower.update()
+        my_flower.draw(screen)
+
+        pygame.display.flip()
+        clock.tick(FPS)
+
+    pygame.quit()
 
 
-
-# activate the pygame library
-pygame.init()
-
-# create the display surface object
-# of specific dimension.
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-
-# set the pygame window name
-pygame.display.set_caption('image')
-
-# create a surface object, image is drawn on it.
-# use convert_alpha() for png images
-img = pygame.image.load("flower.png").convert_alpha()
-
-# scale down the flower
-img = pygame.transform.scale(img, (100,100))
-
-# option: tint your image if you want
-
-img.fill(("pink"), special_flags=pygame.BLEND_ADD)
-
-# position of dino
-flower_x = 100
-flower_y = 100
-
-# Init the clock
-clock = pygame.time.Clock()
-
-flag = True
-while flag:
-    # ticking the clock
-    clock.tick(60)
-
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            flag = False
-
-    # moving flower as clock tick
-    if flower_x  < SCREEN_WIDTH:
-        flower_y += 3
-    else:
-        flower_x = 0
-
-    # paint the screen with background color
-    screen.fill(BACKGROUND_COLOR)
-    # Using blit to copy image to screen at a specific location
-    screen.blit(img, (flower_x, flower_y))
-    # refresh the display
-    pygame.display.flip()
-
-pygame.quit()
-exit(0)
+if __name__ == "__main__":
+    main()
