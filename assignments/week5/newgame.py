@@ -1,20 +1,18 @@
 import time
 
-# CONSTANTS
-
-# Timing delays (in seconds)
+# definig time delays (in sec)
 DELAY_SHORT  = 0.4
 DELAY_NORMAL = 0.6
 DELAY_LONG   = 0.8
 
-# Quiz settings
+# Quiz settings overview
 TOTAL_QUESTIONS = 5
 PERFECT_SCORE   = TOTAL_QUESTIONS
 GOOD_SCORE_MIN  = 3
 CONFIDENCE_MIN  = 7
 CONFIDENCE_RANGE = (1, 10)
 
-# Story flavour
+# Story mood/ background 
 ENEMY_HOUSE = "Slytherin"
 
 # QUESTIONS DATA
@@ -261,7 +259,7 @@ def main():
         # Results
         show_results(name, score)
 
-        # Restart
+        # Restart option 
         restart = ask_choice("Do you want to restart? (Y/N): ", valid_options={"Y", "N"})
         if restart == "N":
             slow_print("Thanks for playing! Goodbye! ✨", DELAY_NORMAL)
