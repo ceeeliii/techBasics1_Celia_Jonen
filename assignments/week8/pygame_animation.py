@@ -1,13 +1,13 @@
 import pygame
 import random
 
-# --- constants ---
+# setup
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 BACKGROUND_COLOR = (135, 206, 235)  # sky blue
 FPS = 60
 
-# --- flower class ---
+# flower class
 class Flower:
     def __init__(self):
         # random starting position
@@ -25,40 +25,38 @@ class Flower:
             (255, 182, 193),  # light pink
             (255, 105, 180),  # hot pink
             (216, 191, 216),  # thistle purple
-            (255, 160, 122),  # light salmon
-        ])
+            (255, 160, 122),])  # light salmon
 
     def draw(self, screen):
         cx = int(self.x)
         cy = int(self.y)
         s = self.scale
 
-        # --- pot ---
+        # pot
         pot_rect = pygame.Rect(cx - int(35 * s), cy + int(80 * s), int(70 * s), int(50 * s))
         pygame.draw.rect(screen, (139, 69, 19), pot_rect)
 
-        # --- stem ---
+        # stem
         stem_start = (cx, cy + int(80 * s))
         stem_end = (cx, cy - int(20 * s))
         pygame.draw.line(screen, (0, 128, 0), stem_start, stem_end, int(8 * s))
 
-        # --- left leaf ---
+        # left leaf
         left_leaf_points = [
             (cx, cy + int(40 * s)),
             (cx - int(40 * s), cy + int(10 * s)),
-            (cx - int(10 * s), cy + int(50 * s)),
-        ]
+            (cx - int(10 * s), cy + int(50 * s)),]
         pygame.draw.polygon(screen, (0, 100, 0), left_leaf_points)
 
-        # --- right leaf ---
+        # right leaf
         right_leaf_points = [
             (cx, cy + int(55 * s)),
             (cx + int(40 * s), cy + int(25 * s)),
-            (cx + int(10 * s), cy + int(65 * s)),
-        ]
+            (cx + int(10 * s), cy + int(65 * s)),]
+
         pygame.draw.polygon(screen, (0, 100, 0), right_leaf_points)
 
-        # --- petals ---
+        # petals
         petal_radius = int(18 * s)
         petal_distance = int(28 * s)
         for i in range(8):
@@ -68,10 +66,10 @@ class Flower:
             petal_y = cy + int(angle_rad.y * petal_distance)
             pygame.draw.circle(screen, self.petal_color, (petal_x, petal_y), petal_radius)
 
-        # --- flower center ---
+        # flower center
         pygame.draw.circle(screen, (255, 165, 0), (cx, cy), int(22 * s))
 
-        # --- small yellow detail ---
+        # small yellow detail
         pygame.draw.circle(screen, (255, 255, 0), (cx, cy), int(10 * s))
 
     def update(self):
@@ -86,7 +84,7 @@ class Flower:
             self.scale = random.uniform(0.6, 1.2)
 
 
-# --- main function ---
+# main function
 def main():
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -96,7 +94,7 @@ def main():
     # create one single flower instance
     my_flower = Flower()
 
-    # --- game loop ---
+    # game loop
     running = True
     while running:
 
