@@ -1,56 +1,63 @@
 import time
 
-# definig time delays (in sec)
+# time delays (in sec)
 DELAY_SHORT  = 0.4
 DELAY_NORMAL = 0.6
 DELAY_LONG   = 0.8
 
-# Quiz settings overview
+# Quiz overview
 TOTAL_QUESTIONS = 5
 PERFECT_SCORE   = TOTAL_QUESTIONS
 GOOD_SCORE_MIN  = 3
 CONFIDENCE_MIN  = 7
 CONFIDENCE_RANGE = (1, 10)
 
-# Story mood/ background 
+# Story mood/ background
 ENEMY_HOUSE = "Slytherin"
 
-# QUESTIONS DATA
+# Questions
 
 QUESTIONS = [
-
-     { "text": "Question 1/5: In which house is Harry Potter?",
+    {
+        "text": "Question 1/5: In which house is Harry Potter?",
         "type": "text",
         "correct": {"gryffindor"},
-        "hint": "Think of courage and bravery.",},
-
-    { "text": "Question 2/5: What is the name of Harry's owl?",
+        "hint": "Think of courage and bravery.",
+    },
+    {
+        "text": "Question 2/5: What is the name of Harry's owl?",
         "type": "text",
         "correct": {"hedwig"},
-        "hint": "She delivers magical mail.",},
-    { "text": ("Question 3/5: Which spell lets Harry control his broom? (Choose A/B/C)\n"
-            "  A) Wingardium Leviosa\n"
-            "  B) Accio\n"
-            "  C) Stupefy"),
+        "hint": "She delivers magical mail.",
+    },
+    {
+        "text": ("Question 3/5: Which spell lets Harry control his broom? (Choose A/B/C)\n"
+                "  A) Wingardium Leviosa\n"
+                "  B) Accio\n"
+                "  C) Stupefy"),
         "type": "choice",
         "options": {"A", "B", "C"},
         "correct": None,
-        "hint": None,},
-    { "text": "Question 4/5: Choose the Patronus animal: (A) Doe  (B) Wolf  (C) Snake",
+        "hint": None,
+    },
+    {
+        "text": "Question 4/5: Choose the Patronus animal: (A) Doe  (B) Wolf  (C) Snake",
         "type": "choice",
         "options": {"A", "B", "C"},
         "correct": "A",
-        "hint": None,},
-    { "text":
-        ("Question 5/5: True or False?\n"
-            "'Voldemort could not be destroyed because he had Horcruxes.'" ),
+        "hint": None,
+    },
+    {
+        "text": ("Question 5/5: True or False?\n"
+                "'Voldemort could not be destroyed because he had Horcruxes.'"),
         "type": "choice",
         "options": {"T", "F"},
         "correct": "T",
-        "hint": None,},]
+        "hint": None,
+    },
+]
 
-
-# HELPER FUNCTIONS (low-level)
+# Helping functions (low-level)
 
 def slow_print(text, delay=0.5):
     """Print text and pause for a given delay."""
@@ -85,7 +92,7 @@ def normalize_text(s):
     """Lowercase, strip, and collapse whitespace for consistent comparison."""
     return " ".join(s.strip().lower().split())
 
-# SETUP FUNCTIONS
+# Setup 
 
 def get_player_name():
     """Ask for the player's name and return it."""
@@ -100,8 +107,7 @@ def get_player_name():
 
 def get_difficulty():
     """Ask the player to choose a difficulty and return 'E' or 'H'."""
-    difficulty = ask_choice( "Choose difficulty: (E)asy or (H)ard: ",
-        valid_options={"E", "H"} )
+    difficulty = ask_choice("Choose difficulty: (E)asy or (H)ard: ", valid_options={"E", "H"})
 
     if difficulty == "E":
         slow_print("Easy mode: You get a small hint when needed.", DELAY_NORMAL)
@@ -110,8 +116,7 @@ def get_difficulty():
 
     return difficulty
 
-# QUESTION FUNCTIONS
-
+# Questions functions
 
 def ask_question_1(difficulty):
     """Ask Q1 (Harry's house) and return 1 if correct, 0 if not."""
@@ -162,7 +167,7 @@ def ask_question_3(difficulty):
     else:
         slow_print("'Stupefy' actually stuns opponents, not brooms — tricky question!", DELAY_LONG)
 
-    # Confidence mini-task
+    # Extra Mini-task
     slow_print("Mini-task: Rate your confidence to earn points here (1 to 10).", DELAY_NORMAL)
     confidence = ask_int_in_range("Confidence number (1-10): ", *CONFIDENCE_RANGE)
 
@@ -210,7 +215,7 @@ def ask_question_5():
         slow_print("Incorrect. Horcruxes made him much harder to destroy.", DELAY_LONG)
         return 0
 
-# RESULTS
+# Final Results
 
 def show_results(name, score):
     """Print the final score and a message based on performance."""
@@ -224,7 +229,7 @@ def show_results(name, score):
     else:
         slow_print("Not bad — but you should learn your spells. Try again!", DELAY_LONG)
 
-# MAIN
+# Main 
 
 def main():
     """Main game loop: greets the player, runs the quiz, handles restart."""
@@ -259,7 +264,7 @@ def main():
         # Results
         show_results(name, score)
 
-        # Restart option 
+        # Restart option
         restart = ask_choice("Do you want to restart? (Y/N): ", valid_options={"Y", "N"})
         if restart == "N":
             slow_print("Thanks for playing! Goodbye! ✨", DELAY_NORMAL)
